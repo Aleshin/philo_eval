@@ -14,57 +14,66 @@
 # define PHILO_H
 
 # include <stdio.h>
+# include <stdlib.h>
 # include <unistd.h>
 # include <pthread.h>
-# include <stdlib.h>
 # include <sys/time.h>
 
-typedef struct s_philo
+enum e_status
 {
-	pthread_t			thread;
-	int					philo_id;
-	int					eating; //1 0
-	int					flag_all_ate; //1 0 if meals counter == num_meals
-	int					meals_counter; //++
-	size_t				last_meal; //start eating + time to eat//shared
-	size_t				start_time;
-	pthread_mutex_t		r_fork;
-	pthread_mutex_t		l_fork;
-	struct s_data		*data;
-}	t_philo;
+	TAKEN_FORK,
+	EATING,
+	SLEEPING,
+	THINKING,
+	DEAD
+};
 
-typedef struct s_data
+typedef struct args
 {
-	int				num_of_philos;
+	int				number_of_philosophers;
 	size_t			time_to_die;
 	size_t			time_to_eat;
 	size_t			time_to_sleep;
-	int				num_meals;
-	int				end_flag; //shared
-	int				finished_philo_counter; //shared
-	pthread_mutex_t	dead_lock; //shared
-	pthread_mutex_t	meal_lock; //shared
-	pthread_mutex_t	write_lock; //shared
-	t_philo			*philos; //array of structs type t_philo with all info
-}	t_data;
+	size_t			start_time;
+	int				number_of_times_each_philosopher_must_eat;
+	int				philos_finished;
+	int				end;
+	pthread_mutex_t	mutex_global;
+	pthread_mutex_t	mutex_print;
+	pthread_mutex_t	mutex_end;
+	pthread_mutex_t	mutex_eat;
+	pthread_t		thread_monitor;
+}	t_args;
 
-//INIT
-void			input(t_data *data, char **argv);
-int				set_philosophers(t_philo *data, t_data *set);
-int				create_and_join_threads(t_data *data);
-int				init_mutexes(t_data *set, t_philo *data);
-void			cleanup_all(t_data *set);
+typedef struct philo
+{
+	int				id;
+	pthread_mutex_t	fork;
+	pthread_mutex_t	timer_mutex;
+	pthread_t		thread_philo;
+	size_t			timer_life;
+	size_t			timer_current;
+	int				status;
+	int				eat_count;
+	t_args			*args;
+}	t_philo;
 
-//ROUTINE
-void			*routine(void *data);
-void			*monitor(void *arg);
-
-//UTILS
-size_t			get_current_time(void);
-unsigned int	ft_atoi(char *str);
-void			print_death(t_philo *philo);
-int				check_end_flag(t_data *data);
-void			safe_print(t_philo *philo, char *str);
-int				ft_usleep(size_t milliseconds);
+size_t		f_time(size_t start_time);
+void		ft_usleep(int millisec);
+int			check_args(int argc, char **argv);
+unsigned	int	ft_atoi(char *str);
+int			print_status(t_philo *philo, char *status);
+int			init_args(int argc, char **argv, t_args *args);
+int			init_philo(t_philo *philosophers, t_args *args);
+int			one_philo(t_args *args);
+int			init_threads(t_philo *philosophers, t_args *args);
+int			finish_threads(t_philo *philosophers, t_args *args, int f);
+int			take_forks(t_philo *philo, t_philo *next_philo);
+int			check_taken_fork(t_philo *philo);
+int			free_forks(t_philo *philo, t_philo *next_philo);
+int			check_eating(t_philo *philo, t_philo *next_philo);
+void		*philo_routine(void *data);
+void		*monitor(void *data);
+int			thread_errors(t_philo *philo, t_args *args, int f);
 
 #endif

@@ -1,27 +1,28 @@
-CC = gcc -pthread -fsanitize=thread -g
+CC = gcc -pthread #-fsanitize=thread -g
 CFLAGS = -Wall -Wextra -Werror
+RM = rm -f
 
-SRC = philo.c init.c init_threads.c monitor.c routine.c utils.c
-OBJ_DIR = OBJ
-OBJ = $(addprefix $(OBJ_DIR)/, $(SRC:.c=.o))
 NAME = philo
+HEADER = philo.h
 
-all: $(NAME)
+SRCS =	philo.c utils.c threads.c init.c check_status.c
 
-$(NAME): $(OBJ) Makefile
-	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+OBJS = $(SRCS:.c=.o)
 
-$(OBJ_DIR)/%.o: %.c Makefile philo.h
-	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+%.o:%.c 	$(HEADER) Makefile
+			$(CC) $(CFLAGS) -c $< -o $@
 
-clean : 
-	rm -r $(OBJ_DIR)
+all: 		$(NAME)
 
-fclean :
-	rm -f $(NAME)
-	rm -r $(OBJ_DIR)
+$(NAME): 	$(OBJS)
+			$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
 
-re : fclean all
+clean:
+			$(RM) $(OBJS)
 
-.PHONY : clean fclean re all
+fclean: 	clean
+			$(RM) $(NAME)
+
+re:			fclean all
+
+.PHONY: all clean fclean re

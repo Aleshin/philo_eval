@@ -5,29 +5,28 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: saleshin <saleshin@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/14 23:14:49 by saleshin          #+#    #+#             */
-/*   Updated: 2024/07/14 23:15:01 by saleshin         ###   ########.fr       */
+/*   Created: 2024/07/14 23:11:19 by saleshin          #+#    #+#             */
+/*   Updated: 2024/07/14 23:11:32 by saleshin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #include "philo.h"
 
-size_t	get_current_time(void)
+size_t	f_time(size_t start_time)
 {
-	struct timeval	time;
+	struct timeval	tv;
 
-	if (gettimeofday(&time, NULL) == -1)
-		write(2, "gettimeofday() error\n", 21);
-	return (time.tv_sec * 1000 + time.tv_usec / 1000);
+	gettimeofday(&tv, NULL);
+	return (tv.tv_sec * 1000 + tv.tv_usec / 1000 - start_time);
 }
 
-int	ft_usleep(size_t milliseconds)
+void	ft_usleep(int millisec)
 {
-	size_t	start;
+	size_t	end;
 
-	start = get_current_time();
-	while ((get_current_time() - start) < milliseconds)
-		usleep(500);
-	return (0);
+	end = f_time(0) + millisec;
+	while (f_time(0) < end)
+		usleep(200);
 }
 
 //returns 0 if number is 0, negative or not number
@@ -52,13 +51,32 @@ unsigned	int	ft_atoi(char *str)
 	return (res);
 }
 
-void	safe_print(t_philo *philo, char *str)
+int	check_args(int argc, char **argv)
 {
-	if (!check_end_flag(philo->data))
+	int	i;
+
+	i = 1;
+	while (i < argc)
 	{
-		pthread_mutex_lock(&philo->data->write_lock);
-		printf("%zu %d %s\n", get_current_time()
-			- philo->start_time, philo->philo_id, str);
-		pthread_mutex_unlock(&philo->data->write_lock);
+		if (ft_atoi(argv[i]) == 0)
+		{
+			printf("Wrong arg \"%s\". Need positive int\n", argv[i]);
+			return (1);
+		}
+		i++;
 	}
+	return (0);
+}
+
+int	print_status(t_philo *philo, char *status)
+{
+	pthread_mutex_lock(&philo->args->mutex_end);
+	if (philo->args->end > 0)
+	{
+		pthread_mutex_unlock(&philo->args->mutex_end);
+		return (1);
+	}
+	printf("%zu %d %s\n", f_time(philo->args->start_time), philo->id, status);
+	pthread_mutex_unlock(&philo->args->mutex_end);
+	return (0);
 }
