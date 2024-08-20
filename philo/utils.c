@@ -70,13 +70,16 @@ int	check_args(int argc, char **argv)
 
 int	print_status(t_philo *philo, char *status)
 {
+	size_t	time;
+	int		end;
+
+	pthread_mutex_lock(&philo->args->mutex_print);
+	time = f_time(philo->args->start_time);
 	pthread_mutex_lock(&philo->args->mutex_end);
-	if (philo->args->end > 0)
-	{
-		pthread_mutex_unlock(&philo->args->mutex_end);
-		return (1);
-	}
-	printf("%zu %d %s\n", f_time(philo->args->start_time), philo->id, status);
+	end = philo->args->end;
 	pthread_mutex_unlock(&philo->args->mutex_end);
+	if (end == 0)
+		printf("%zu %d %s\n", time, philo->id, status);
+	pthread_mutex_unlock(&philo->args->mutex_print);
 	return (0);
 }

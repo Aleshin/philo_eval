@@ -29,6 +29,7 @@ int	main(int argc, char **argv)
 	philos = malloc(args->number_of_philosophers * sizeof(t_philo));
 	if (!philos)
 		return (1);
+//	memset(philos, 0, sizeof(t_philo) * (args->number_of_philosophers));
 	init_philo(philos, args);
 	pthread_mutex_lock(&philos->args->mutex_global);
 	f = init_threads(philos, args);

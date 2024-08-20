@@ -18,6 +18,7 @@
 # include <unistd.h>
 # include <pthread.h>
 # include <sys/time.h>
+# include <string.h>
 
 enum e_status
 {
